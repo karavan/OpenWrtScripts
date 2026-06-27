@@ -27,6 +27,7 @@
 
 # ======= Printed with: print-router-label.sh =======
 #      Device: Linksys E8450 (UBI)
+#   Flash/RAM: 16MB/128MB
 #     OpenWrt: OpenWrt 23.05.5 r24106-10cc5fcd00
 #  Connect to: http://Belkin-RT3200.local
 #          or: ssh root@Belkin-RT3200.local
@@ -41,10 +42,43 @@
 # Label for Power Brick: Linksys E8450 (UBI)
 #
 
+# Round a byte count up to the next power of two, in whole MB.
+# Rounding up (rather than to nearest) accounts for /proc/mtd and
+# /proc/meminfo reporting slightly less than the nominal hardware size.
+round_up_to_pow2_mb() {
+	local bytes="$1"
+	local pow2=1
+	while [ "$pow2" -lt "$bytes" ]; do
+		pow2=$((pow2 * 2))
+	done
+	echo $((pow2 / 1024 / 1024))
+}
+
+get_flash_ram_label() {
+	# Total flash size: use the largest single /proc/mtd partition
+	# (typically "firmware", spanning kernel+rootfs) rather than summing
+	# all partitions, since smaller partitions like rootfs_data are
+	# nested inside larger ones and would be double-counted.
+	local flashbytes=0
+	local dev size erasesize name
+	while read -r dev size erasesize name; do
+		[ "$dev" = "dev:" ] && continue
+		size=$((0x$size))
+		[ "$size" -gt "$flashbytes" ] && flashbytes=$size
+	done < /proc/mtd
+	local flashmb=$(round_up_to_pow2_mb "$flashbytes")
+
+	local memtotalkb=$(grep "^MemTotal:" /proc/meminfo | tr -s ' ' | cut -d' ' -f2)
+	local rammb=$(round_up_to_pow2_mb $((memtotalkb * 1024)))
+
+	echo "${flashmb}MB/${rammb}MB"
+}
+
 print_router_label() {
-	local ROOTPASSWD="${1:-"?"}" 
+	local ROOTPASSWD="${1:-"?"}"
 	TODAY=$(date +"%Y-%m-%d")
 	DEVICE=$(cat /tmp/sysinfo/model)
+	FLASHRAMLABEL=$(get_flash_ram_label)
 	OPENWRTVERSION=$(grep "DISTRIB_DESCRIPTION" /etc/openwrt_release | cut -d"=" -f2 | tr -d '"' | tr -d "'")
 	HOSTNAME=$(uci get system.@system[0].hostname)
 	LANIPADDRESS=$(uci get network.lan.ipaddr)
@@ -88,7 +122,8 @@ print_router_label() {
 	echo ""
 	echo "======= Printed with: print-router-label.sh ======="
 	echo "     Device: $DEVICE"
-	echo "    OpenWrt: $OPENWRTVERSION" 
+	echo "  Flash/RAM: $FLASHRAMLABEL"
+	echo "    OpenWrt: $OPENWRTVERSION"
 	echo " Connect to: http://$HOSTNAME.$LOCALDNSTLD" 
 	echo "         or: ssh root@$HOSTNAME.$LOCALDNSTLD"
 	echo "        LAN: $LANIPADDRESS"

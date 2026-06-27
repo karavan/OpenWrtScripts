@@ -117,13 +117,14 @@ label that contains the LAN address and important credentials.
 Tape this label to the side of the router so the next person
 to encounter the router (which may be you) can access it.
 
-This process is reasonably secure - if the bad guy
+This label is reasonably secure - if the bad guy
 can read the label, they can also factory-reset the router
 (or steal your TV or your silverware). Here's a sample label:
 
 ```text
 ======= Printed with: print-router-label.sh =======
      Device: Linksys E8450 (UBI)
+  Flash/RAM: ##MB/###MB
     OpenWrt: OpenWrt 23.05.5 r24106-10cc5fcd00
  Connect to: http://Belkin-RT3200.local
          or: ssh root@Belkin-RT3200.local

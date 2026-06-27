@@ -58,6 +58,7 @@ they can also push buttons to factory-reset it (or steal your silverware or your
 ```text
 # ======= Printed with: print-router-label.sh =======
 #      Device: Linksys E8450 (UBI)
+#   Flash/RAM: ##MB/###MB
 #     OpenWrt: OpenWrt 23.05.5 r24106-10cc5fcd00
 #  Connect to: http://SpareRouter.local
 #          or: ssh root@SpareRouter.local
