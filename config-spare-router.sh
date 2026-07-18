@@ -217,13 +217,19 @@ uci commit system
 # Some of these are pre-installed, but there is no harm in
 # updating/installing them a second time.
 echo '*** Updating software packages'
-opkg -V0 update                # retrieve updated packages
-opkg -V0 install luci          # install the web GUI
-opkg -V0 install umdns         # install mDNS responder
-opkg -V0 install luci-app-sqm  # install the SQM modules to get fq_codel etc
-opkg -V0 install travelmate	   # install the travelmate package to be a repeater
-opkg -V0 install luci-app-travelmate # and its LuCI GUI
-opkg -V0 install luci-app-attended-sysupgrade # sysupgrade GUI
+PACKAGES="luci umdns luci-app-sqm travelmate luci-app-travelmate luci-app-attended-sysupgrade"
+
+if command -v apk > /dev/null 2>&1; then
+    apk -q update
+    for pkg in $PACKAGES; do
+        apk -q add "$pkg"
+    done
+else
+    opkg -V0 update
+    for pkg in $PACKAGES; do
+        opkg -V0 install "$pkg"
+    done
+fi
 
 echo '*** SpareRouter configuration complete'
 
