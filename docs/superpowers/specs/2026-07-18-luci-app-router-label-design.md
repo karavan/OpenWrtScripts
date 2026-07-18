@@ -85,6 +85,7 @@ luci-app-router-label/
 | Login PW      | client-side text input, not derivable from `uci`      |
 | Wifi SSID/PW  | first enabled `wireless` `wifi-iface` section          |
 | Configured    | today's date (script: shell `date`; here: JS `Date`)  |
+| Label for Power Brick | same value as Device, shown as its own row (script line 144 — a second copy of the device name, meant to be snipped out and taped to the power brick) |
 
 ## Error handling
 
@@ -93,6 +94,10 @@ luci-app-router-label/
   unset `uci -q get` results.
 - No enabled `wifi-iface` found → Wifi SSID/PW both show `unknown`,
   matching the script's fallback branch.
+- Enabled `wifi-iface` found but its `key` is empty (open Wifi, no
+  password) → Wifi PW shows the literal string `<no password>`, matching
+  the script's substitution — this is distinct from the "no enabled
+  iface at all" case above and must not be conflated with it.
 - JSON fetch failure (e.g. expired session) shows LuCI's standard error
   notification rather than a blank/broken page.
 
