@@ -42,10 +42,17 @@
 # Label for Power Brick: Linksys E8450 (UBI)
 #
 
+# === print_router_label() - copy/paste into config-spare-router.sh ===
+#
+# This function is copy/pasted from "print-router-label.sh"
+# to keep the "config-spare-router.sh" script a single file.
+# THIS IS A MAINTENANCE HASSLE: 
+# Changes to the printing must be updated in both places
+
+round_up_to_pow2_mb() {
 # Round a byte count up to the next power of two, in whole MB.
 # Rounding up (rather than to nearest) accounts for /proc/mtd and
 # /proc/meminfo reporting slightly less than the nominal hardware size.
-round_up_to_pow2_mb() {
 	local bytes="$1"
 	local pow2=1
 	while [ "$pow2" -lt "$bytes" ]; do
@@ -137,5 +144,6 @@ print_router_label() {
 	echo "Label for Power Brick: $DEVICE"
 	echo ""
 }
+# === END of print_router_label() ===
 
 print_router_label "$1"

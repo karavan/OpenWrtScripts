@@ -30,11 +30,11 @@
 #    It'll be easy to restore if necessary.
 # 1. Connect your laptop on a wired LAN port (Ethernet):
 #    some of these changes can reset the wireless network.
-# 2. Connect the router's WAN port to the internet: this
-#    script needs to install certain packages. (Perhaps
-#    plug its WAN port into your new router's LAN port 
-#    while running this script.)
-# 3. Flash the router with factory firmware.
+# 2. Connect the new router's WAN port to the internet:
+#    this script needs to download and install certain packages.
+#    (Perhaps plug the new router's WAN port into your
+#     old router's LAN port before running this script.)
+# 3. Flash the router with current OpenWrt firmware.
 #    Do NOT keep the settings.
 # 4. SSH in and execute the statements below. 
 # 
@@ -50,15 +50,17 @@
 # then use the "To run this script" procedure (below).
 #
 
-# === print_router_label() ===
+# === print_router_label() - copy/paste into config-spare-router.sh ===
+#
 # This function is copy/pasted from "print-router-label.sh"
 # to keep the "config-spare-router.sh" script a single file.
 # THIS IS A MAINTENANCE HASSLE: 
 # Changes to the printing must be updated in both places
+
+round_up_to_pow2_mb() {
 # Round a byte count up to the next power of two, in whole MB.
 # Rounding up (rather than to nearest) accounts for /proc/mtd and
 # /proc/meminfo reporting slightly less than the nominal hardware size.
-round_up_to_pow2_mb() {
 	local bytes="$1"
 	local pow2=1
 	while [ "$pow2" -lt "$bytes" ]; do
@@ -150,6 +152,9 @@ print_router_label() {
 	echo "Label for Power Brick: $DEVICE"
 	echo ""
 }
+# === END of print_router_label() ===
+
+###### MAIN ROUTINE ######
 
 # === CONFIGURATION PARAMETERS ===
 # Set the variables to be used for configuration
@@ -165,10 +170,18 @@ WIFISSID="SpareRouter"
 WIFIPASSWD=''
 ENCRMODE='none'
 
+#
+# === First check for WAN connectivity - exit if none, since the rest won't work
+#
+if ! { ping -c1 -W2 1.1.1.1 >/dev/null 2>&1 || ping -c1 -W2 8.8.8.8 >/dev/null 2>&1; }; then
+    echo "Aborting - Can't connect to the internet. No changes made."
+    exit 1
+fi
+
 # === Update root password =====================
 # Update the root password. 
 # 
-echo '*** Updating root password'
+echo "*** Updating root password to $ROOTPASSWD"
 passwd <<EOF
 $ROOTPASSWD
 $ROOTPASSWD
@@ -187,7 +200,8 @@ uci commit system
 # perturbing the SSH session. Reboot at the end of the script
 echo "*** Changing IP address to $LANIPADDRESS"
 sed -i s#192.168.1.1#$LANIPADDRESS#g /etc/config/network
-# sleep 5
+# Write the new address into the config file, but don't change it
+# Address changes upon reboot
 
 # === Enable Wifi on the first radio with configured parameters
 # Open one radio for access
@@ -217,12 +231,12 @@ uci commit system
 # Some of these are pre-installed, but there is no harm in
 # updating/installing them a second time.
 echo '*** Updating software packages'
-PACKAGES="luci umdns luci-app-sqm travelmate luci-app-travelmate luci-app-attended-sysupgrade"
+PACKAGES="luci umdns luci-app-sqm travelmate luci-app-travelmate luci-app-attendedsysupgrade"
 
 if command -v apk > /dev/null 2>&1; then
     apk -q update
     for pkg in $PACKAGES; do
-        apk -q add "$pkg"
+        apk -q add --no-cache "$pkg"
     done
 else
     opkg -V0 update
