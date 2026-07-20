@@ -21,6 +21,11 @@ These scripts work for [OpenWrt](https://openwrt.org) and include:
   Create a printable label showing LAN address and login credentials
   that can be taped on the side of the router.
 
+* [luci-app-router-label](#luci-app-router-label) -
+  A LuCI web GUI page (Services > Printable Label) showing the same
+  information as print-router-label.sh, with a fill-in-only field
+  for the root password.
+
 * [betterspeedtest.sh](#betterspeedtestsh) &
   [netperfrunner.sh](#netperfrunnersh) - scripts that measure the
   performance of your router or offer load to the network for testing.
@@ -138,6 +143,19 @@ can read the label, they can also factory-reset the router
 
 Label for Power Brick: Linksys E8450 (UBI)
 ```
+
+## [luci-app-router-label](https://github.com/richb-hanover/OpenWrtScripts/tree/master/luci-app-router-label)
+
+Shows the same information as `print-router-label.sh` (device, Flash/RAM,
+OpenWrt version, LAN address, Wifi credentials) in the LuCI web GUI,
+under **Services > Printable Label**, instead of on the console. The root
+login password isn't derivable from `uci`, so it's a plain text field on
+the page that only updates the page's display — nothing is saved or
+sent anywhere.
+
+Currently ships as loose files rather than an installable package; see
+[luci-app-router-label/README.md](./luci-app-router-label/README.md) for
+how to try it on a router.
 
 ## [config-openwrt.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/config-openwrt.sh)
 

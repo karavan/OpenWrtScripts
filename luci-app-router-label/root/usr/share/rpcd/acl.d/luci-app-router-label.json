@@ -1,0 +1,15 @@
+{
+	"luci-app-router-label": {
+		"description": "Grant access for luci-app-router-label",
+		"read": {
+			"file": {
+				"/proc/mtd": [ "read" ]
+			},
+			"uci": [ "system", "network", "dhcp", "wireless" ],
+			"ubus": {
+				"file": [ "read" ],
+				"system": [ "board", "info" ]
+			}
+		}
+	}
+}

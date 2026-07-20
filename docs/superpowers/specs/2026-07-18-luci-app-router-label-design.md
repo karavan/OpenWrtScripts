@@ -119,3 +119,62 @@ This is documented in the app directory's own README.
 - Persisting the root password anywhere.
 - A print-specific stylesheet (native LuCI table styling was chosen over
   reproducing the script's monospace-aligned text block).
+
+## Addendum (2026-07-19): revised for ucode-era LuCI
+
+Real on-router testing (a 2026-dated OpenWrt snapshot, 25.12.5) found the
+Lua-controller architecture above doesn't work at all on current OpenWrt:
+`/usr/lib/lua/luci` doesn't exist, and no Lua controller runtime is loaded
+by the ucode-based dispatcher. This isn't an OpenWrt bug — it's a
+completed migration (LuCI's controller layer moved from Lua to ucode; a
+February 2026 documentation commitment formalizes dropping Lua
+references). Confirmed by inspecting the router directly: none of its
+installed third-party apps (`luci-app-sqm`, `luci-app-travelmate`, etc.)
+ship a controller file of *any* kind.
+
+**What actually works, confirmed against those apps' real files on the
+router:**
+
+- **Menu registration** is a static JSON file in `/usr/share/luci/menu.d/`
+  (e.g. `luci-app-sqm.json`) — no code, just a path → view mapping plus an
+  ACL dependency name.
+- **Data fetching is entirely client-side.** `sqm.js` calls `fs.read(...)`
+  directly for file reads and `uci.load()`/`uci.get()` for config —
+  exactly the "pure client-side ubus calls" alternative this spec
+  originally declined in favor of a Lua controller (see the original
+  "Data flow" section above). That alternative is no longer a choice
+  between two valid approaches — it's the only one available.
+- **ACL is per-app and explicit**, in `/usr/share/rpcd/acl.d/` — e.g.
+  `luci-app-sqm.json` grants read access to specific literal file paths
+  and specific `uci` config names. `luci-base`'s own default grant is
+  narrow (`uci: ["system", "luci"]` only — not `network`/`dhcp`/`wireless`),
+  so an app needing those must ship its own ACL file. (Root/admin sessions
+  in practice bypass ACL enforcement entirely, which is why the original
+  design's "no ACL needed" claim wasn't contradicted by earlier testing —
+  it just wasn't exercised on a router yet. Shipping an ACL file remains
+  correct practice for a properly-packaged app, not just a `root`-only one.)
+
+**Resulting architecture change:**
+
+- The Lua controller and `luasrc/routerlabel/util.lua` are deleted — they
+  can never be invoked on this LuCI version.
+- All logic that lived in the Lua controller now lives in a plain JS
+  module, `htdocs/luci-static/resources/routerlabel.js`, loaded by the
+  view via `'require routerlabel'`. It's structured so the same file also
+  runs under plain `node` for unit testing (`tests/test_routerlabel_util.js`),
+  the same way `util.lua` ran under plain `lua`.
+- Device and OpenWrt version no longer need raw file parsing at all:
+  `ubus call system board` returns `model` and `release.description`
+  directly. RAM comes from `ubus call system info`'s `memory.total`.
+  Only Flash size still needs a raw file read, of `/proc/mtd` — there's
+  no ubus-exposed equivalent for that.
+- New files: `root/usr/share/luci/menu.d/luci-app-router-label.json`
+  (menu) and `root/usr/share/rpcd/acl.d/luci-app-router-label.json` (ACL),
+  under a `root/` subdirectory whose path mirrors the target filesystem
+  exactly — matching how a real package's `Makefile` would install a
+  `root/` tree, same "loose files now, real package later" principle as
+  `luasrc/`/`htdocs/` before it.
+- The "Field-by-field parity" and "Error handling" sections above are
+  otherwise unchanged in *behavior* — same 12 fields, same wifi-fallback
+  rules, same client-only password field. Only *where the logic runs*
+  and *how data is fetched* changed.

@@ -1,0 +1,13 @@
+{
+	"admin/services/routerlabel": {
+		"title": "Printable Label",
+		"order": 60,
+		"action": {
+			"type": "view",
+			"path": "routerlabel"
+		},
+		"depends": {
+			"acl": [ "luci-app-router-label" ]
+		}
+	}
+}
