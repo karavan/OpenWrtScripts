@@ -4,6 +4,14 @@ This is a set of scripts (sometimes also called "Openscripts") that report,
 configure and measure (and improve) latency in home routers.
 These scripts work for [OpenWrt](https://openwrt.org) and include:
 
+* [Printable Label](./luci-app-router-label/README.md) -
+  a prototype of an OpenWrt package that prints a label
+  that can be taped to the router,
+  with all the model number and credentials to make
+  it easy to access in the future.
+  This is a transcription of the `print-router-label.sh` (below)
+  from bash to Javascript (for the package).
+  
 * [getstats.sh](#getstatssh) - a script to collect troubleshooting
   information that helps to diagnose problems in the OpenWrt distribution.
 
