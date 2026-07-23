@@ -11,7 +11,8 @@ These scripts work for [OpenWrt](https://openwrt.org) and include:
   it easy to access in the future.
   This is a transcription of the `print-router-label.sh` (below)
   from bash to Javascript (for the package).
-  
+  Requires OpenWrt 25.12 or newer
+    
 * [getstats.sh](#getstatssh) - a script to collect troubleshooting
   information that helps to diagnose problems in the OpenWrt distribution.
 

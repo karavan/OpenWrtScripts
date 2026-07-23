@@ -6,6 +6,11 @@
 'require rpc';
 'require routerlabel';
 
+// Keep in sync with PKG_VERSION in this app's Makefile -- not derived from
+// it automatically, since this file is also used directly (as loose files,
+// no SDK build) during day-to-day development.
+var APP_VERSION = '0.1.0';
+
 var callSystemBoard = rpc.declare({
 	object: 'system',
 	method: 'board'
@@ -194,7 +199,7 @@ return view.extend({
 			['Wifi SSID', data.wifiSsid],
 			['Wifi PW', data.wifiPw],
 			['Date printed', today],
-			['Printed with', 'Printable Label, https://github.com/richb-hanover/OpenWrtScripts']
+			['Printed with', 'Printable Label v' + APP_VERSION + ', https://github.com/richb-hanover/OpenWrtScripts']
 		];
 
 		var table = E('table', { 'class': 'rl-table' }, rows.map(function (row) {
