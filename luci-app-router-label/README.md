@@ -6,9 +6,11 @@ Displays the same router-identification "label" that `print-router-label.sh`
 `uci`, so it's a plain text field on the page — nothing typed there is
 saved to disk or sent to the router; it only updates the page you're looking at.
 
-This ships as loose files for now, not a built `.ipk`/`.apk` — see
-`docs/superpowers/specs/2026-07-18-luci-app-router-label-design.md` for why,
-and how this maps onto a real package later.
+Two ways to run this: quick loose-file deploy for iterating (below, no
+build step), or a real installable `.apk` built via the OpenWrt SDK —
+see [BUILDING.md](./BUILDING.md). See
+`docs/superpowers/specs/2026-07-18-luci-app-router-label-design.md` for
+the original design rationale.
 
 ## Architecture note: targets ucode-era LuCI, not classic Lua LuCI
 
