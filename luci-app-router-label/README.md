@@ -1,4 +1,16 @@
-# luci-app-router-label
+# Printable Label
+
+This package displays a web page that, when printed,
+creates a label with router info plus credentials
+that can be taped to the router for ease of access
+when you come back to the router years from now.
+
+The border (below) contains the information that
+is printed.
+
+![router label](./router-label.png)
+
+-------
 
 Displays the same router-identification "label" that `print-router-label.sh`
 (in the repo root) prints to the console, but in the LuCI web GUI under
