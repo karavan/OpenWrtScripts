@@ -20,26 +20,37 @@ This tag matches the test router exactly (`ath79/generic` target, OpenWrt
 25.12.5) — see the note at the bottom on picking a different tag. The
 image is large (~2GB uncompressed).
 
-Pick a stable, persistent directory for the SDK's working state (feeds,
-toolchain, build cache) — **not** a temp directory, since re-running the
-full feeds setup from scratch takes several minutes:
+The image declares `/builder` (the SDK's whole working directory --
+feeds, toolchain, `staging_dir`, `build_dir`) as a Docker **volume**. This
+matters: `docker commit` and similar tricks silently exclude volume data,
+so the only reliable way to keep this state across container
+recreations is a real Docker volume, not a bind mount to some host
+directory you pick yourself:
+
+```bash
+docker volume create openwrt-router-label-builder
+```
+
+`bin/` (the actual build *output* -- the `.apk` files you want) is
+different: bind-mount that to a real directory on your Mac so it's
+directly accessible without `docker cp`:
 
 ```bash
 mkdir -p ~/openwrt-sdk-build/bin
 ```
 
-Start a long-lived container with this repo's package directory and the
-SDK's `bin/` output directory mounted in:
+Start a long-lived container with the named volume as `/builder`, this
+repo's package directory bind-mounted in (read-only -- the build never
+needs to write into the source tree), and `bin/` bind-mounted to the
+directory above:
 
 ```bash
 docker run -d --name openwrt-router-label-build \
+  -v openwrt-router-label-builder:/builder \
   -v /Users/richb/github/OpenWrtScripts/luci-app-router-label:/builder/package/luci-app-router-label:ro \
   -v ~/openwrt-sdk-build/bin:/builder/bin \
   openwrt/sdk:ath79-generic-25.12.5 sleep infinity
 ```
-
-The package mount is read-only (`:ro`) — the build never needs to write
-into the source tree, only into `build_dir`/`bin` elsewhere in the SDK.
 
 Set up feeds (downloads several git repos — takes a few minutes):
 
@@ -122,21 +133,27 @@ upgrade in place. To remove entirely: `apk del luci-app-router-label`.
 ## Cleaning up
 
 ```bash
-docker stop openwrt-router-label-build     # pause, keeps all state for later
-docker rm openwrt-router-label-build       # or fully remove the container
-                                            # (the SDK working directory in
-                                            # ~/openwrt-sdk-build survives
-                                            # either way, since it's a bind
-                                            # mount, not container storage --
-                                            # only the `bin/` output subfolder
-                                            # is mounted, so removing the
-                                            # container loses everything else
-                                            # under ~/openwrt-sdk-build/*
-                                            # that lived in the container's
-                                            # own /builder filesystem, e.g.
-                                            # staging_dir/feeds/build_dir --
-                                            # you'd redo the one-time setup)
+docker stop openwrt-router-label-build     # pause; the named volume (feeds,
+                                            # staging_dir, build_dir) and
+                                            # ~/openwrt-sdk-build/bin both
+                                            # survive regardless
+
+docker rm openwrt-router-label-build       # also fine -- the named volume
+                                            # (openwrt-router-label-builder)
+                                            # is a separate Docker object,
+                                            # untouched by removing the
+                                            # container. Recreate the
+                                            # container later with the same
+                                            # `docker run` command above and
+                                            # everything (feeds, .config,
+                                            # toolchain) is right where you
+                                            # left it -- no need to redo
+                                            # feeds update/install/defconfig.
 ```
+
+To actually discard the SDK state and start over: `docker volume rm
+openwrt-router-label-builder` (only after removing the container that's
+using it).
 
 ## Picking a different SDK target/version
 
