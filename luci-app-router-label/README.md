@@ -5,8 +5,9 @@ creates a label with router info plus credentials
 that can be taped to the router for ease of access
 when you come back to the router years from now.
 
+To display the label, choose **Services -> Printable Label**.
 The border (below) contains the information that
-is printed.
+is printed for the label.
 
 ![router label](./router-label.png)
 
@@ -18,9 +19,10 @@ Displays the same router-identification "label" that `print-router-label.sh`
 `uci`, so it's a plain text field on the page — nothing typed there is
 saved to disk or sent to the router; it only updates the page you're looking at.
 
-Two ways to run this: quick loose-file deploy for iterating (below, no
-build step), or a real installable `.apk` built via the OpenWrt SDK —
-see [BUILDING.md](./BUILDING.md). See
+Two ways to run this: a real installable `.apk`, built and deployed with
+`./build-apk.sh && ./deploy-apk.sh` (fast — no OpenWrt SDK needed, see
+[BUILDING.md](./BUILDING.md)), or a manual loose-file deploy for iterating
+on a single file (below). See
 `docs/superpowers/specs/2026-07-18-luci-app-router-label-design.md` for
 the original design rationale.
 
@@ -41,15 +43,19 @@ reason — all the logic that used to live in a Lua controller now lives in
 An earlier version of this app used a Lua controller + `luasrc/` module;
 that approach doesn't work on current OpenWrt and was removed.
 
-## Testing on a router (no SDK/opkg build required)
+## Testing on a router
 
-**Quick path:** edit `copy-package-files.sh` to point at your router's
-address (currently hardcoded), then run `./copy-package-files.sh` from
-anywhere — it copies all four files and clears the menu cache / restarts
-`rpcd` for you. The manual steps below are what it automates, useful if
-you want to deploy just one file or something's gone wrong.
+**Recommended:** `./build-apk.sh && ./deploy-apk.sh [user@]router-address`
+from this directory — builds the `.apk` (see [BUILDING.md](./BUILDING.md))
+and installs it on the router with `apk`, clearing the menu cache and
+restarting `rpcd` for you.
 
-Copy the files directly onto a router running current OpenWrt. The `scp`
+## Manual loose-file deploy (fallback / single-file iteration)
+
+Useful for iterating on a single file, or if something's gone wrong with
+the packaged path above — no package involved, just `scp` the file straight
+to where it runs. Copy the files directly onto a router running current
+OpenWrt. The `scp`
 source paths below are relative to this directory (`luci-app-router-label/`),
 so `cd` here first.
 

@@ -6,10 +6,12 @@
 'require rpc';
 'require routerlabel';
 
-// Keep in sync with PKG_VERSION in this app's Makefile -- not derived from
-// it automatically, since this file is also used directly (as loose files,
-// no SDK build) during day-to-day development.
-var APP_VERSION = '0.1.0';
+// Kept in sync with PKG_VERSION in this app's Makefile by build-apk.sh
+// (run automatically before every build, or on its own via
+// `build-apk.sh --sync-version`) -- can't be derived at runtime since this
+// file is also used directly (as loose files, no SDK build) during
+// day-to-day development.
+var APP_VERSION = '0.1.2';
 
 var callSystemBoard = rpc.declare({
 	object: 'system',
@@ -235,10 +237,10 @@ return view.extend({
 				'router. ' +
 				'Tape the label to the router so that years from now, the next person to touch ' +
 				'the router (it might be you) can access it. ' +
-				'Optionally, type the password into the Login PW field. It will be printed, but never saved. ')),
+				'If you wish, type the password into the Login PW field. It will be printed, but never saved. ')),
 			E('p', {}, [
 				E('strong', {}, [ _('Pro tip:') ]),
-				_(' Snip out the power brick label and tape it to the power brick so it ' +
+				_(' Snip out the router\'s model from the Power Brick Label and tape it to the power brick so it ' +
 					'can be re-united with the router if they get separated.')
 			]),
 			E('h3', {}, _('Why is this safe?')),
@@ -253,7 +255,7 @@ return view.extend({
 						printButton
 					]),
 					E('div', { 'class': 'rl-power-brick' }, [
-						E('strong', {}, [ _('Label for Power Brick: ') ]),
+						E('strong', {}, [ _('Power Brick Label: ') ]),
 						E('span', {}, [ data.device ])
 					])
 				])
